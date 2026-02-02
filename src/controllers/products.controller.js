@@ -1,0 +1,98 @@
+const productService = require('../services/productService');
+
+/**
+ * GET /api/products/
+ * Lista todos los productos. Soporta ?limit=N
+ */
+async function getAll(req, res, next) {
+  try {
+    const limit = req.query.limit;
+    const products = await productService.getAll(limit);
+    res.status(200).json(products);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/products/:pid
+ * Obtiene un producto por ID
+ */
+async function getById(req, res, next) {
+  try {
+    const { pid } = req.params;
+    const product = await productService.getById(pid);
+    if (!product) {
+      return res.status(404).json({ error: 'Producto no encontrado', pid });
+    }
+    res.status(200).json(product);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/products/
+ * Crea un nuevo producto. id auto-generado, no se envía en body.
+ */
+async function create(req, res, next) {
+  try {
+    const validation = productService.validateProductBody(req.body);
+    if (!validation.valid) {
+      if (validation.missing) {
+        return res.status(400).json({ error: 'Campos obligatorios faltantes', missing: validation.missing });
+      }
+      return res.status(400).json({ error: validation.error });
+    }
+    const product = await productService.create(req.body);
+    res.status(201).json(product);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * PUT /api/products/:pid
+ * Actualiza un producto. El id NUNCA se actualiza.
+ */
+async function update(req, res, next) {
+  try {
+    const { pid } = req.params;
+    const product = await productService.getById(pid);
+    if (!product) {
+      return res.status(404).json({ error: 'Producto no encontrado', pid });
+    }
+    // No permitir actualizar id
+    const body = { ...req.body };
+    delete body.id;
+    const updated = await productService.update(pid, body);
+    res.status(200).json(updated);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * DELETE /api/products/:pid
+ * Elimina un producto
+ */
+async function remove(req, res, next) {
+  try {
+    const { pid } = req.params;
+    const deleted = await productService.remove(pid);
+    if (!deleted) {
+      return res.status(404).json({ error: 'Producto no encontrado', pid });
+    }
+    res.status(200).json({ message: 'Producto eliminado', product: deleted });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = {
+  getAll,
+  getById,
+  create,
+  update,
+  remove
+};

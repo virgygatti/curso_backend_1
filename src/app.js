@@ -1,4 +1,6 @@
 const express = require('express');
+ const productsRouter = require('./routes/products.routes');
+const cartsRouter = require('./routes/carts.routes');
 
 const app = express();
 
@@ -8,8 +10,9 @@ app.use(express.json());
 // Middleware para parsear URL encoded
 app.use(express.urlencoded({ extended: true }));
 
-// Rutas
-// TODO: Importar y usar las rutas de productos y carritos
+// Rutas API
+app.use('/api/products', productsRouter);
+app.use('/api/carts', cartsRouter);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
