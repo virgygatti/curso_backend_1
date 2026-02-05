@@ -34,6 +34,7 @@ async function getById(req, res, next) {
 /**
  * POST /api/products/
  * Crea un nuevo producto. id auto-generado, no se envía en body.
+ * Tras crear, emite la lista actualizada por Socket.io para que todos los clientes (p. ej. realTimeProducts) se actualicen.
  */
 async function create(req, res, next) {
   try {
@@ -45,6 +46,11 @@ async function create(req, res, next) {
       return res.status(400).json({ error: validation.error });
     }
     const product = await productService.create(req.body);
+    const io = req.app.get('io');
+    if (io) {
+      const products = await productService.getAll();
+      io.emit('products', products);
+    }
     res.status(201).json(product);
   } catch (err) {
     next(err);
@@ -74,7 +80,7 @@ async function update(req, res, next) {
 
 /**
  * DELETE /api/products/:pid
- * Elimina un producto
+ * Elimina un producto. Tras eliminar, emite la lista actualizada por Socket.io.
  */
 async function remove(req, res, next) {
   try {
@@ -82,6 +88,11 @@ async function remove(req, res, next) {
     const deleted = await productService.remove(pid);
     if (!deleted) {
       return res.status(404).json({ error: 'Producto no encontrado', pid });
+    }
+    const io = req.app.get('io');
+    if (io) {
+      const products = await productService.getAll();
+      io.emit('products', products);
     }
     res.status(200).json({ message: 'Producto eliminado', product: deleted });
   } catch (err) {

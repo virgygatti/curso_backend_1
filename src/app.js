@@ -1,8 +1,20 @@
 const express = require('express');
- const productsRouter = require('./routes/products.routes');
+const expressHandlebars = require('express-handlebars');
+const path = require('path');
+const productsRouter = require('./routes/products.routes');
 const cartsRouter = require('./routes/carts.routes');
+const viewsRouter = require('./routes/views.routes');
 
 const app = express();
+
+// Motor de plantillas Handlebars
+app.engine('handlebars', expressHandlebars.engine({
+  defaultLayout: 'main',
+  layoutsDir: path.join(__dirname, '../views/layouts'),
+  partialsDir: path.join(__dirname, '../views/partials')
+}));
+app.set('view engine', 'handlebars');
+app.set('views', path.join(__dirname, '../views'));
 
 // Middleware para parsear JSON
 app.use(express.json());
@@ -10,14 +22,12 @@ app.use(express.json());
 // Middleware para parsear URL encoded
 app.use(express.urlencoded({ extended: true }));
 
+// Rutas de vistas (index y realtimeproducts)
+app.use('/', viewsRouter);
+
 // Rutas API
 app.use('/api/products', productsRouter);
 app.use('/api/carts', cartsRouter);
-
-// Ruta de prueba
-app.get('/', (req, res) => {
-  res.json({ message: 'Servidor funcionando correctamente' });
-});
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
