@@ -2,13 +2,20 @@ const productService = require('../services/productService');
 
 /**
  * GET /api/products/
- * Lista todos los productos. Soporta ?limit=N
+ * Listado profesionalizado: paginación (limit, page), filtro (query: categoría o disponibilidad), orden (sort: asc|desc por price).
+ * Respuesta: { status, payload, totalPages, prevPage, nextPage, page, hasPrevPage, hasNextPage, prevLink, nextLink }
  */
 async function getAll(req, res, next) {
   try {
-    const limit = req.query.limit;
-    const products = await productService.getAll(limit);
-    res.status(200).json(products);
+    const baseUrl = req.baseUrl || '/api/products';
+    const result = await productService.getPaginated({
+      limit: req.query.limit,
+      page: req.query.page,
+      query: req.query.query,
+      sort: req.query.sort,
+      baseUrl
+    });
+    res.status(200).json(result);
   } catch (err) {
     next(err);
   }

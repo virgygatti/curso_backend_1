@@ -1,9 +1,11 @@
+require('dotenv').config();
 const http = require('http');
 const app = require('./app');
 const { Server } = require('socket.io');
 const productService = require('./services/productService');
+const { connect: connectDB } = require('./config/database');
 
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 const server = http.createServer(app);
 
@@ -23,6 +25,8 @@ io.on('connection', async (socket) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+connectDB().then(() => {
+  server.listen(PORT, () => {
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  });
 });

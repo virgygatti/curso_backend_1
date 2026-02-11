@@ -40,8 +40,72 @@ async function addProduct(req, res, next) {
     const { cid, pid } = req.params;
     const result = await cartService.addProduct(cid, pid);
     if (result.error) {
-      const status = result.error === 'Carrito no encontrado' ? 404 : 404;
-      return res.status(status).json({ error: result.error });
+      return res.status(404).json({ error: result.error });
+    }
+    res.status(200).json(result.cart);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * DELETE /api/carts/:cid/products/:pid - Elimina un producto del carrito
+ */
+async function removeProduct(req, res, next) {
+  try {
+    const { cid, pid } = req.params;
+    const result = await cartService.removeProduct(cid, pid);
+    if (result.error) {
+      return res.status(404).json({ error: result.error });
+    }
+    res.status(200).json(result.cart);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * PUT /api/carts/:cid - Actualiza el carrito completo. Body: { products: [{ product: id, quantity: n }, ...] }
+ */
+async function updateCart(req, res, next) {
+  try {
+    const { cid } = req.params;
+    const result = await cartService.updateCart(cid, req.body.products || req.body);
+    if (result.error) {
+      return res.status(404).json({ error: result.error });
+    }
+    res.status(200).json(result.cart);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * PUT /api/carts/:cid/products/:pid - Actualiza la cantidad. Body: { quantity: number }
+ */
+async function updateProductQuantity(req, res, next) {
+  try {
+    const { cid, pid } = req.params;
+    const quantity = req.body.quantity;
+    const result = await cartService.updateProductQuantity(cid, pid, quantity);
+    if (result.error) {
+      return res.status(404).json({ error: result.error });
+    }
+    res.status(200).json(result.cart);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * DELETE /api/carts/:cid - Elimina todos los productos del carrito
+ */
+async function clearCart(req, res, next) {
+  try {
+    const { cid } = req.params;
+    const result = await cartService.clearCart(cid);
+    if (result.error) {
+      return res.status(404).json({ error: result.error });
     }
     res.status(200).json(result.cart);
   } catch (err) {
@@ -52,5 +116,9 @@ async function addProduct(req, res, next) {
 module.exports = {
   create,
   getById,
-  addProduct
+  addProduct,
+  removeProduct,
+  updateCart,
+  updateProductQuantity,
+  clearCart
 };
